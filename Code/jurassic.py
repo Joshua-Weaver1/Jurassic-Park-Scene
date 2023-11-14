@@ -17,14 +17,17 @@ class Scene:
         """
 
         self.window_size = (1280,720)
+
         # Initialize pygame
         pygame.init()
         # Create a window
-        window = pygame.display.set_mode((1280,720), pygame.OPENGL|pygame.DOUBLEBUF, 24)
+        window = pygame.display.set_mode(self.window_size, pygame.OPENGL|pygame.DOUBLEBUF, 24)
 
         # Initialize OpenGL
-        glViewport(0, 0, 1280,720)
+        glViewport(0, 0, self.window_size[0], self.window_size[1])
         glClearColor(0.0, 0.5, 0.5, 1.0)
+
+        self.camera = Camera(self.window_size)
 
         # The objects in the scene
         self.objects = []
@@ -46,12 +49,34 @@ class Scene:
         # Clear the screen
         glClear(GL_COLOR_BUFFER_BIT)
 
+        # saves the current position
+        glPushMatrix()
+
+        # apply the camera parameters
+        self.camera.apply()
+
         # Render all objects
         for obj in self.objects:
             obj.render()
+
+        # retrieve the last saved position
+        glPopMatrix()
         
         # Swap the buffers
         pygame.display.flip()
+
+    def keyboard(self, event):
+        if event.key == pygame.K_q:
+            self.running = False
+
+        elif event.key == pygame.K_0:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        elif event.key == pygame.K_1:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+
+        self.camera.keyboard(event)
 
     def start(self):
         """
@@ -60,12 +85,21 @@ class Scene:
         """
 
         # Start the scene
-        in_use = True
-        while in_use:
+        self.in_use = True
+        while self.in_use:
             # Handle events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    in_use = False
+                    self.in_use = False
+                # keyboard events
+                elif event.type == pygame.KEYDOWN:
+                    self.keyboard(event)
+
+                elif event.type == pygame.MOUSEMOTION:
+                    if pygame.mouse.get_pressed()[0]:
+                        dx, dy = event.rel
+                        self.camera.position[0] -= dx / self.window_size[0] /10 - 0.5
+                        self.camera.position[1] -= dy / self.window_size[1] /10- 0.5
 
             # Render the scene
             self.render()
@@ -177,6 +211,44 @@ class TreeObj(SimpleObject):
             component.render()
 
         glPopMatrix()
+
+class Camera:
+    '''
+    Basic class for handling the camera pose. At this stage, just x and y offsets.
+    '''
+    def __init__(self,size):
+        self.size = size
+        self.position = [0.0,0.0,0.0]
+
+    def apply(self):
+        '''
+        Apply the camera parameters to the current OpenGL context
+        Note that this is the old fashioned API, we will use matrices in the
+        future.
+        '''
+        glTranslate(*self.position)
+
+    def keyboard(self,event):
+        '''
+        Handles keyboard events that are related to the camera.
+        '''
+        if event.key == pygame.K_PAGEDOWN:
+            self.position[2] += 0.01
+
+        if event.key == pygame.K_PAGEUP:
+            self.position[2] -= 0.01
+
+        if event.key == pygame.K_DOWN:
+            self.position[1] += 0.01
+
+        if event.key == pygame.K_UP:
+            self.position[1] -= 0.01
+
+        if event.key == pygame.K_LEFT:
+            self.position[0] += 0.01
+
+        if event.key == pygame.K_RIGHT:
+            self.position[0] -= 0.01
 
 if __name__ == '__main__':
     """
