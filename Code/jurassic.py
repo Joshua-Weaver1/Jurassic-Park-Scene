@@ -1,264 +1,189 @@
-# Desc: Main file for the Jurassic Park Scene
-
-# OpenGL is used for the graphics
-from OpenGL.GL import *
-# pygame is used for the windowing and event handling
+# pygame is just used to create a window with the operating system on which to draw.
 import pygame
-# numpy is used for the matrix math
+
+# imports all openGL functions
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
+# we will use numpy to store data in arrays
 import numpy as np
 
-class Scene:
-    """
-    The scene class. This class holds all objects in the scene and renders them.
-    """
-    def __init__(self):
-        """
-        Initialize the scene.
-        """
+# we will use numpy to store data in arrays
+import numpy as np
 
-        self.window_size = (1280,720)
+# import the shader class
+from shaders import Shaders
 
-        # Initialize pygame
-        pygame.init()
-        # Create a window
-        window = pygame.display.set_mode(self.window_size, pygame.OPENGL|pygame.DOUBLEBUF, 24)
+# import the camera class
+from camera import Camera
 
-        # Initialize OpenGL
-        glViewport(0, 0, self.window_size[0], self.window_size[1])
-        glClearColor(0.0, 0.5, 0.5, 1.0)
+# import the scene class
+from scene import Scene
 
-        self.camera = Camera(self.window_size)
+# and we import a bunch of helper functions
+from matutils import *
 
-        # The objects in the scene
-        self.objects = []
+class BaseModel:
+    '''
+    Base class for all models, implementing the basic draw function for triangular meshes.
+    Inherit from this to create new models.
+    '''
 
-    def add_object(self, obj):
-        """
-        Add an object to the scene.
-        obj: The object to add.
-        return: None
-        """
-        self.objects.append(obj)
-
-    def render(self):
-        """
-        Render all objects in the scene using OpenGL.
-        return: None
-        """
-
-        # Clear the screen
-        glClear(GL_COLOR_BUFFER_BIT)
-
-        # saves the current position
-        glPushMatrix()
-
-        # apply the camera parameters
-        self.camera.set_cam_parameters()
-
-        # Render all objects
-        for obj in self.objects:
-            obj.render()
-
-        # retrieve the last saved position
-        glPopMatrix()
-        
-        # Swap the buffers
-        pygame.display.flip()
-
-    def key_event(self, event):
-        if event.key == pygame.K_q:
-            self.running = False
-
-        elif event.key == pygame.K_0:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-        elif event.key == pygame.K_1:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-
-        self.camera.key_event(event)
-
-    def start(self):
-        """
-        Start the scene.
-        return: None
-        """
-
-        # Start the scene
-        self.in_use = True
-        while self.in_use:
-            # Handle events
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.in_use = False
-                # keyboard events
-                elif event.type == pygame.KEYDOWN:
-                    self.key_event(event)
-
-                elif event.type == pygame.MOUSEMOTION:
-                    if pygame.mouse.get_pressed()[0]:
-                        dx, dy = event.rel
-                        self.camera.position[0] -= dx / self.window_size[0] /10 - 0.5
-                        self.camera.position[1] -= dy / self.window_size[1] /10- 0.5
-
-            # Render the scene
-            self.render()
-
-class SimpleObject:
-    """
-    A simple object is a collection of vertices that can be rendered.
-    """
-
-    def __init__(self, translation=[0,0,0], rotation=0, size=1, color=[1,1,1]):
+    def __init__(self, scene, M, color=[1,1,1], primitive=GL_TRIANGLES):
         '''
         Initialises the model data
         '''
 
-        # variables for storing the parameters
+        print('+ Initializing {}'.format(self.__class__.__name__))
+
+        self.scene = scene
+
+        self.primitive = primitive
+
+        # store the object's color
         self.color = color
-        self.translation = translation
-        self.rotation = rotation
-        self.size = size
+
+        # store the position of the model in the scene, ...
+        self.M = M
+
+    def bind(self):
+        '''
+        This method stores the vertex data in a Vertex Buffer Object (VBO) that can be uploaded
+        to the GPU at render time.
+        '''
+        # create a buffer object
+        self.vbo = glGenBuffers(1)
+
+        # bind the buffer so that following operations will affect it
+        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
+
+        # and we set the data in the buffer as the vertex array
+        glBufferData(GL_ARRAY_BUFFER, self.vertices, GL_STATIC_DRAW)
 
 
-    def set_obj_params(self):
-        """
-        Sets the params of the object
-        :return: None
-        """
-        
-        glTranslate(*self.translation)
-        glRotate(self.rotation, 0, 0, 1)
-        # 3 params for x, y, z
-        glScale(self.size, self.size, self.size)
+    def draw(self, Mp):
+        '''
+        Draws the model using OpenGL functions
+        :return:
+        '''
+
+        #print('Drawing {}'.format(self.__class__.__name__))
+
+        # then set the colour
         glColor(self.color)
 
-    def render(self):
-        '''
-        Renders the object using OpenGL
-        :return: None
-        '''
+        # setup the shader program and provide it the Model, View and Projection matrices to use
+        # for rendering this model
+        self.scene.shaders.bind(M=np.matmul(Mp, self.M), V=self.scene.camera.V, P=self.scene.P)
 
-        # saves the current parameters
-        glPushMatrix()
+        # bind the buffer so that the following operations affect it
+        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
 
-        self.set_obj_params()
+        # bind the location of the vertex position in the GLSL program to the location zero
+        # the name of the location must correspond to a 'in' variable in the GLSL vertex shader code
+        vertex_loc = glGetAttribLocation(program=self.scene.shaders.program, name='position')
 
-        # we use the GL_TRIANGLES primitive to draw the model
-        glBegin(GL_TRIANGLES)
+        # Associate the bound buffer to the corresponding input location in the shader
+        # Each instance of the vertex shader will get one row of the array
+        # so this can be processed in parallel!
+        glVertexAttribPointer(index=vertex_loc, size=self.vertices.shape[1], type=GL_FLOAT, normalized=False, stride=0, pointer=None)
+        glEnableVertexAttribArray(vertex_loc)
 
-        # iterate over all vertices
-        for vertex in self.vertices:
+        # draw the data in the buffer using the GL_TRIANGLES primitive
+        glDrawArrays(self.primitive, 0, self.vertices.shape[0])
 
-            # the glVertex function takes a single vertex as parameter and adds
-            # the vertex to the list.
-            glVertex(vertex)
+        self.scene.shaders.unbind()
 
-        # end the batch (we are done drawing now)
-        glEnd()
-
-        # restore the previous parameters
-        glPopMatrix()
-
-        def applyPose(self):
-            # apply the translation, rotation and size of the object
-            glTranslate(*self.translation)
-            glRotate(self.rotation, 0, 0, 1)
-            glScale(self.size, self.size, self.size)
-            glColor(self.color)
-
-class TriangleObj(SimpleObject):
+class TriangleModel(BaseModel):
     '''
-    A simple triangle object
+    A very simple model for drawing a single triangle. This is only for illustration purpose.
     '''
-    def __init__(self, translation=[0, 0, 0], rotation=0, size=1, color=[1, 1, 1]):
-        SimpleObject.__init__(self, translation=translation, rotation=rotation, size=size, color=color)
+    def __init__(self, scene, M, color=[1, 1, 1]):
+        BaseModel.__init__(self, scene, M=M, color=color)
 
         # each row encodes the coordinate for one vertex.
         # given that we are drawing in 2D, the last coordinate is always zero.
         self.vertices = np.array(
             [
-                [0.0, 1.0, 0.0],
                 [0.0, 0.0, 0.0],
-                [1.0, 1.0, 0.0]
+                [0.0, 1.0, 0.0],
+                [1.0, 0.0, 0.0]
             ], 'f')
+        self.bind()
 
-class TreeObj(SimpleObject):
-    def __init__(self, translation=[0,0,0], rotation=0, size=1):
-        SimpleObject.__init__(self, translation=translation, rotation=rotation, size=size)
+class FlatTriangleModel(BaseModel):
+    '''
+    A very simple model for drawing a single triangle. This is only for illustration purpose.
+    '''
+    def __init__(self, scene, M, color=[1, 1, 1]):
+        BaseModel.__init__(self, scene, M=M, color=color)
 
-        # the tree consists of multiple components
-        self.components = [
-            TriangleObj(translation=[0, 0, 0], size=0.5, rotation=-45, color=[0, 1, 0]),
-            TriangleObj(translation=[0, 0.25, 0], size=0.5, rotation=-45, color=[0, 1, 0]),
-            TriangleObj(translation=[0, 0.5, 0], size=0.5, rotation=-45, color=[0, 1, 0]),
-            TriangleObj(translation=[0.25, -0.25, 0], size=0.25, rotation=0, color=[0.6, 0.2, 0.2]),
-            TriangleObj(translation=[0.5, 0, 0], size=0.25, rotation=-180, color=[0.6, 0.2, 0.2])
-        ]
+        # each row encodes the coordinate for one vertex.
+        # given that we are drawing in 2D, the last coordinate is always zero.
+        self.vertices = np.array(
+            [
+                [0.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0],
+                [1.0, 0.0, 1.0]
+            ], 'f')
+        self.bind()
 
-    def render(self):
-        """
-        Renders the object using OpenGL
-        :return: None
-        """
-        glPushMatrix()
-
-        # apply the parameters for the whole model
-        self.set_obj_params()
-
+class ComplexModel(BaseModel):
+    def draw(self, Mp):
         # draw all component primitives
         for component in self.components:
-            component.render()
+            component.draw(np.matmul(Mp, self.M))
 
-        glPopMatrix()
+class SquareModel(BaseModel):
+    def __init__(self, scene, M, color=[1, 1, 1]):
+        BaseModel.__init__(self, scene, M=M, color=color, primitive=GL_QUADS)
+        self.vertices = np.array([
+            [0., 0., 0.],
+            [1., 0., 0.],
+            [1., 1., 0.],
+            [0., 1., 0.]
+        ], 'f')
+        self.bind()
 
-class Camera:
-    '''
-    Basic class for handling the camera pose. At this stage, just x and y offsets.
-    '''
-    def __init__(self,size):
-        self.size = size
-        self.position = [0.0,0.0,0.0]
+class TreeModel(ComplexModel):
+    def __init__(self, scene, M ):
+        BaseModel.__init__(self, scene=scene, M=M)
 
-    def set_cam_parameters(self):
-        '''
-        Apply the camera parameters to the current OpenGL context
-        Note that this is the old fashioned API, we will use matrices in the
-        future.
-        '''
-        glTranslate(*self.position)
+        # list of simple components
+        self.components = [
+            SquareModel(scene, M=poseMatrix(position=[-0.125, 0., 0], scale=[0.25,0.5,1.], orientation=0), color=[0.6, 0.2, 0.2]),
+            TriangleModel(scene, M=poseMatrix(position=[0, 0.5, 0], scale=[0.25,0.5,1]), color=[0, 1, 0]),
+            TriangleModel(scene, M=poseMatrix(position=[0, 0.5, 0], scale=[-0.25,0.5,1]), color=[0, 1, 0]),
+            TriangleModel(scene, M=poseMatrix(position=[0, 0.75, 0], scale=[0.25, 0.5, 1]), color=[0, 1, 0]),
+            TriangleModel(scene, M=poseMatrix(position=[0, 0.75, 0], scale=[-0.25, 0.5, 1]), color=[0, 1, 0]),
+            TriangleModel(scene, M=poseMatrix(position=[0, 1.0, 0], scale=[0.25, 0.5, 1]), color=[0, 1, 0]),
+            TriangleModel(scene, M=poseMatrix(position=[0, 1.0, 0], scale=[-0.25, 0.5, 1]), color=[0, 1, 0]),
+        ]
 
-    def key_event(self, event):
-        '''
-        Handles keyboard events that are related to the camera.
-        '''
-        if event.key == pygame.K_PAGEDOWN:
-            self.position[2] += 0.01
+class HouseModel(ComplexModel):
+    def __init__(self, scene, M):
+        BaseModel.__init__(self, scene, M=M)
 
-        if event.key == pygame.K_PAGEUP:
-            self.position[2] -= 0.01
-
-        if event.key == pygame.K_DOWN:
-            self.position[1] += 0.01
-
-        if event.key == pygame.K_UP:
-            self.position[1] -= 0.01
-
-        if event.key == pygame.K_LEFT:
-            self.position[0] += 0.01
-
-        if event.key == pygame.K_RIGHT:
-            self.position[0] -= 0.01
+        # list of simple components
+        self.components = [
+            SquareModel(scene, M=poseMatrix(position=[0, 0, 0], scale=0.5, orientation=0), color=[0.9, 0.9, 0.9]),
+            TriangleModel(scene, M=poseMatrix(position=[0.25, 0.5, 0], scale=0.25), color=[0.9, 0.1, 0]),
+            TriangleModel(scene, M=poseMatrix(position=[0.25, 0.5, 0], scale=[-0.25,0.25,1]), color=[0.9, 0.1, 0]),
+            SquareModel(scene, M=poseMatrix(position=[0.05, 0.25, 0], scale=0.15), color=[0.7, 0.7, 0.9]),
+            SquareModel(scene, M=poseMatrix(position=[0.30, 0.25, 0], scale=0.15), color=[0.7, 0.7, 0.9]),
+            SquareModel(scene, M=poseMatrix(position=[0.20, 0., 0], scale=[0.1,0.2,1.]), color=[0.6, 0.2, 0.2]),
+        ]
 
 if __name__ == '__main__':
-    """
-    This is the main function. It creates a scene and adds a few objects to it.
-    """
-    # creates a new scene
+    # initialises the scene object
     scene = Scene()
 
-    # adds a tree to the scene
-    scene.add_object(TreeObj(translation=[0,0,0]))
+    # adds a few objects to the scene
+    scene.add_model(TreeModel(scene, M=poseMatrix(position=[0.4, 0., -1], scale=0.5)))
+    scene.add_model(TreeModel(scene, M=poseMatrix(position=[0.7, 0, -4], scale=0.5)))
+    scene.add_model(TreeModel(scene, M=poseMatrix(position=[0.3, 0, -3], scale=0.5)))
+    scene.add_model(TreeModel(scene, M=poseMatrix(position=[-0.1, 0, -2], scale=0.5)))
+    scene.add_model(HouseModel(scene, M=poseMatrix(position=[-0.9, 0, -1])))
 
-    # start the scene
-    scene.start()
+    # starts drawing the scene
+    scene.run()
