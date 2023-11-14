@@ -53,7 +53,7 @@ class Scene:
         glPushMatrix()
 
         # apply the camera parameters
-        self.camera.apply()
+        self.camera.set_cam_parameters()
 
         # Render all objects
         for obj in self.objects:
@@ -65,7 +65,7 @@ class Scene:
         # Swap the buffers
         pygame.display.flip()
 
-    def keyboard(self, event):
+    def key_event(self, event):
         if event.key == pygame.K_q:
             self.running = False
 
@@ -76,7 +76,7 @@ class Scene:
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
-        self.camera.keyboard(event)
+        self.camera.key_event(event)
 
     def start(self):
         """
@@ -93,7 +93,7 @@ class Scene:
                     self.in_use = False
                 # keyboard events
                 elif event.type == pygame.KEYDOWN:
-                    self.keyboard(event)
+                    self.key_event(event)
 
                 elif event.type == pygame.MOUSEMOTION:
                     if pygame.mouse.get_pressed()[0]:
@@ -220,7 +220,7 @@ class Camera:
         self.size = size
         self.position = [0.0,0.0,0.0]
 
-    def apply(self):
+    def set_cam_parameters(self):
         '''
         Apply the camera parameters to the current OpenGL context
         Note that this is the old fashioned API, we will use matrices in the
@@ -228,7 +228,7 @@ class Camera:
         '''
         glTranslate(*self.position)
 
-    def keyboard(self,event):
+    def key_event(self, event):
         '''
         Handles keyboard events that are related to the camera.
         '''
