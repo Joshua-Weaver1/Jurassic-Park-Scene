@@ -8,9 +8,6 @@ from OpenGL.GLU import *
 # we will use numpy to store data in arrays
 import numpy as np
 
-# we will use numpy to store data in arrays
-import numpy as np
-
 # import the shader class
 from shaders import Shaders
 
