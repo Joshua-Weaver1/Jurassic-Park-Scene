@@ -60,7 +60,7 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd lena.bmp
+map_Kd floor_texture.bmp
 
 
 newmtl cuerponegro.002

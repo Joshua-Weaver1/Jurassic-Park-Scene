@@ -26,7 +26,7 @@ class SkyBoxShader(BaseShaderProgram):
 class SkyBox(DrawModelFromMesh):
     def __init__(self, scene):
         DrawModelFromMesh.__init__(self, scene=scene, M=poseMatrix(scale=10.0),
-                                   mesh=CubeMesh(texture=CubeMap(name='skybox/ame_ash'), inside=True),
+                                   mesh=CubeMesh(texture=CubeMap(name='skybox/london'), inside=True),
                                    shader=SkyBoxShader(), name='skybox')
 
     def draw(self):
