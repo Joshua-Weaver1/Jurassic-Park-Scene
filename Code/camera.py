@@ -1,13 +1,3 @@
-# pygame is just used to create a window with the operating system on which to draw.
-import pygame
-
-# imports all openGL functions
-from OpenGL.GL import *
-from OpenGL.GLU import *
-
-# we will use numpy to store data in arrays
-import numpy as np
-
 # import a bunch of useful matrix functions (for translation, scaling etc)
 from matutils import *
 
@@ -15,34 +5,34 @@ from matutils import *
 class Camera:
     '''
     Base class for handling the camera.
+    TODO WS2: Implement this class to allow moving the mouse
     '''
-    def __init__(self, size):
-        self.size = size
+
+    def __init__(self):
         self.V = np.identity(4)
-        self.distance = 5.0
-        self.phi = 0.0
-        self.psi = 0.0
-        self.center = np.zeros(3)
+        self.phi = 0.               # azimuth angle
+        self.psi = 0.               # zenith angle
+        self.distance = 5.         # distance of the camera to the centre point
+        self.center = [0., 0., 0.]  # position of the centre
+        self.update()               # calculate the view matrix
 
     def update(self):
         '''
-        This method must be called before rendering to update the V matrix according to whatever changes in the
-        camera parameters occurred. 
+        Function to update the camera view matrix from parameters.
+        first, we set the point we want to look at as centre of the coordinate system,
+        then, we rotate the coordinate system according to phi and psi angles
+        finally, we move the camera to the set distance from the point.
         '''
+        # TODO WS1
+        # calculate the translation matrix for the view center (the point we look at)
+        T0 = translationMatrix(self.center)
 
-        # === WS3: Calculate V ===
+        # calculate the rotation matrix from the angles phi (azimuth) and psi (zenith) angles.
+        R = np.matmul(rotationMatrixX(self.psi), rotationMatrixY(self.phi))
 
-        # first, we can move the centre of 
-        T = translationMatrix(-self.center)
-        
-        # second, we rotate first around y, then around x
-        R = np.matmul( rotationMatrixX(self.psi), rotationMatrixY(self.phi) )
+        # calculate translation for the camera distance to the center point
+        T = translationMatrix([0., 0., -self.distance])
 
-        # last, we move the camera away from the origin, looking back
-        D = translationMatrix([0, 0, -self.distance])
-
-        # we combine all transfomations, note the ordering
-        self.V = np.matmul( D, np.matmul(R,T) )
-        # === End WS3 ===
-
-        pass
+        # finally we calculate the view matrix by combining the three matrices
+        # The order matters!
+        self.V = np.matmul(np.matmul(T, R), T0)

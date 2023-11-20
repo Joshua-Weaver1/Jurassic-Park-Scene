@@ -3,13 +3,9 @@ import pygame
 
 # imports all openGL functions
 from OpenGL.GL import *
-from OpenGL.GLU import *
-
-# we will use numpy to store data in arrays
-import numpy as np
 
 # import the shader class
-from shaders import Shaders
+from shaders import *
 
 # import the camera class
 from camera import Camera
@@ -17,16 +13,21 @@ from camera import Camera
 # and we import a bunch of helper functions
 from matutils import *
 
+from lightSource import LightSource
+
 class Scene:
     '''
     This is the main class for adrawing an OpenGL scene using the PyGame library
     '''
-    def __init__(self, width=800, height=600):
+    def __init__(self, width=800, height=600, shaders=None):
         '''
         Initialises the scene
         '''
 
         self.window_size = (width, height)
+
+        # by default, wireframe mode is off
+        self.wireframe = False
 
         # the first two lines initialise the pygame window. You could use another library for this,
         # for example GLut or Qt
@@ -39,89 +40,117 @@ class Scene:
         # this selects the background color
         glClearColor(0.7, 0.7, 1.0, 1.0)
 
+        # enable back face culling (see lecture on clipping and visibility
+        glEnable(GL_CULL_FACE)
+        # depending on your model, or your projection matrix, the winding order may be inverted,
+        # Typically, you see the far side of the model instead of the front one
+        # uncommenting the following line should provide an easy fix.
+        #glCullFace(GL_FRONT)
+
         # enable the vertex array capability
         glEnableClientState(GL_VERTEX_ARRAY)
 
+        # enable depth test for clean output (see lecture on clipping & visibility for an explanation
+        glEnable(GL_DEPTH_TEST)
+
+        # set the default shader program (can be set on a per-mesh basis)
+        self.shaders = 'flat'
+
         # initialise the projective transform
-        near=1.5
-        far=20
-        left=-1.0
-        right=1.0
-        top=-1.0
-        bottom=1.0
+        near = 1.0
+        far = 20.0
+        left = -1.0
+        right = 1.0
+        top = -1.0
+        bottom = 1.0
+
+        # cycle through models
+        self.show_model = -1
 
         # to start with, we use an orthographic projection; change this.
-        self.P_ortho = orthoMatrix(left,right,top,bottom,near,far)
-        self.P = self.P_ortho
-
-        # === WS3: Frustum projection ===
-        self.P_frustum = frustumMatrix(left,right,top,bottom,near,far)
-        # === WS3 End === 
+        self.P = frustumMatrix(left, right, top, bottom, near, far)
 
         # initialises the camera object
-        self.camera = Camera(self.window_size)
+        self.camera = Camera()
 
-        # and compile the shaders
-        self.shaders = Shaders()
-        self.shaders.compile()
+        # initialise the light source
+        self.light = LightSource(self, position=[5., 5., 5.])
 
+        # rendering mode for the shaders
+        self.mode = 1  # initialise to full interpolated shading
 
         # This class will maintain a list of models to draw in the scene,
-        # we will initalise it to empty
         self.models = []
 
-    def add_model(self,model):
+    def add_model(self, model):
         '''
         This method just adds a model to the scene.
         :param model: The model object to add to the scene
         :return: None
         '''
+
+        # bind the default shader to the mesh
+        #model.bind_shader(self.shaders)
+
+        # and add to the list
         self.models.append(model)
 
-    def draw(self):
+    def add_models_list(self, models_list):
+        '''
+        This method just adds a model to the scene.
+        :param model: The model object to add to the scene
+        :return: None
+        '''
+        for model in models_list:
+            self.add_model(model)
+
+    def draw(self, framebuffer=False):
         '''
         Draw all models in the scene
         :return: None
         '''
 
         # first we need to clear the scene, we also clear the depth buffer to handle occlusions
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        if not framebuffer:
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        self.camera.update()
+            # ensure that the camera view matrix is up to date
+            self.camera.update()
 
         # then we loop over all models in the list and draw them
         for model in self.models:
-            model.draw(Mp=poseMatrix())
+            model.draw()
 
         # once we are done drawing, we display the scene
         # Note that here we use double buffering to avoid artefacts:
         # we draw on a different buffer than the one we display,
         # and flip the two buffers once we are done drawing.
-        pygame.display.flip()
-
+        if not framebuffer:
+            pygame.display.flip()
 
     def keyboard(self, event):
+        '''
+        Method to process keyboard events. Check Pygame documentation for a list of key events
+        :param event: the event object that was raised
+        '''
         if event.key == pygame.K_q:
             self.running = False
 
-        # === WS3 ===:
-        # Changes projection matrix
-        if event.key == pygame.K_p:
-            print('Using perspective projection...')
-            self.P = self.P_frustum
-
-        if event.key == pygame.K_o:
-            print('Using orthographic projection...')
-            self.P = self.P_ortho
-        # === WS3 End ===
-
+        # flag to switch wireframe rendering
         elif event.key == pygame.K_0:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-
-        elif event.key == pygame.K_1:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+            if self.wireframe:
+                print('--> Rendering using colour fill')
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+                self.wireframe = False
+            else:
+                print('--> Rendering using colour wireframe')
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+                self.wireframe = True
 
     def pygameEvents(self):
+        '''
+        Method to handle PyGame events for user interaction.
+        '''
         # check whether the window has been closed
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -131,38 +160,46 @@ class Scene:
             elif event.type == pygame.KEYDOWN:
                 self.keyboard(event)
 
-            # === WS3 ===
-            # All the following block handles the camera movement with the mouse
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                # the mouse wheel changes the distance of the camera to the origin
+                mods = pygame.key.get_mods()
                 if event.button == 4:
-                    self.camera.distance = max(1, self.camera.distance - 1)
+                    #pass
+                    #TODO: WS2
+                    if mods & pygame.KMOD_CTRL:
+                        self.light.position *= 1.1
+                        self.light.update()
+                    else:
+                        self.camera.distance = max(1, self.camera.distance - 1)
+
                 elif event.button == 5:
-                    self.camera.distance += 1
+                    #pass
+                    #TODO: WS2
+                    if mods & pygame.KMOD_CTRL:
+                        self.light.position *= 0.9
+                        self.light.update()
+                    else:
+                        self.camera.distance += 1
 
             elif event.type == pygame.MOUSEMOTION:
                 if pygame.mouse.get_pressed()[0]:
                     if self.mouse_mvt is not None:
                         self.mouse_mvt = pygame.mouse.get_rel()
-
-                        # left mouse button moves the centre
-                        self.camera.center[0] -= 5*(float(self.mouse_mvt[0]) / self.window_size[0])
-                        self.camera.center[1] -= 5*(float(self.mouse_mvt[1]) / self.window_size[1])
+                        #TODO: WS2
+                        self.camera.center[0] -= (float(self.mouse_mvt[0]) / self.window_size[0])
+                        self.camera.center[1] -= (float(self.mouse_mvt[1]) / self.window_size[1])
                     else:
                         self.mouse_mvt = pygame.mouse.get_rel()
 
                 elif pygame.mouse.get_pressed()[2]:
                     if self.mouse_mvt is not None:
                         self.mouse_mvt = pygame.mouse.get_rel()
-
-                        # right mouse button rotates around the centre
-                        self.camera.phi -= 5*(float(self.mouse_mvt[0]) / self.window_size[0])
-                        self.camera.psi -= 5*(float(self.mouse_mvt[1]) / self.window_size[1])
+                        #TODO: WS2
+                        self.camera.phi -= (float(self.mouse_mvt[0]) / self.window_size[0])
+                        self.camera.psi -= (float(self.mouse_mvt[1]) / self.window_size[1])
                     else:
                         self.mouse_mvt = pygame.mouse.get_rel()
                 else:
                     self.mouse_mvt = None
-            # === WS3: end ===
 
     def run(self):
         '''
