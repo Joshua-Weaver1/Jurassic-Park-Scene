@@ -20,7 +20,7 @@ from skyBox import *
 
 from environmentMapping import *
 
-class ExeterScene(Scene):
+class JurassicScene(Scene):
     def __init__(self):
         Scene.__init__(self)
 
@@ -32,18 +32,7 @@ class ExeterScene(Scene):
         self.shadows = ShadowMap(light=self.light)
         self.show_shadow_map = ShowTexture(self, self.shadows)
 
-        #meshes = load_obj_file('models/scene.obj')
-        #self.add_models_list(
-            #[DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-1,0]),scaleMatrix([0.5,0.5,0.5])), mesh=mesh, shader=ShadowMappingShader(shadow_map=self.shadows), name='scene') for mesh in meshes]
-        #)
-
-        #table = load_obj_file('models/quad_table.obj')
-        #self.table = [DrawModelFromMesh(scene=self, M=translationMatrix([0, -4, +0]), mesh=mesh, shader=ShadowMappingShader(shadow_map=self.shadows), name='table') for mesh in table]
-
-        #box = load_obj_file('models/fluid_border.obj')
-        #self.box = [DrawModelFromMesh(scene=self, M=translationMatrix([0,0,0]), mesh=mesh, shader=self.shaders, name='box') for mesh in box]
-
-        # draw a skybox for the horizon
+        # draw a skybox
         self.skybox = SkyBox(scene=self)
 
         self.show_light = DrawModelFromMesh(scene=self, M=poseMatrix(position=self.light.position, scale=0.2), mesh=Sphere(material=Material(Ka=[10,10,10])), shader=FlatShader())
@@ -53,9 +42,11 @@ class ExeterScene(Scene):
         self.sphere = DrawModelFromMesh(scene=self, M=poseMatrix(), mesh=Sphere(), shader=EnvironmentShader(map=self.environment))
         #self.sphere = DrawModelFromMesh(scene=self, M=poseMatrix(), mesh=Sphere(), shader=FlatShader())
 
-        bunny = load_obj_file('models/bunny_world.obj')
-        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,0,0]), scaleMatrix([0.5,0.5,0.5])), mesh=bunny[0], shader=EnvironmentShader(map=self.environment))
+        #bunny = load_obj_file('models/bunny_world.obj')
+        #self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,0,0]), scaleMatrix([0.5,0.5,0.5])), mesh=bunny[0], shader=EnvironmentShader(map=self.environment))
 
+        bunny = load_obj_file('models/TRIKERATOPS_CAGE_MODEL.obj')
+        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-0.5,-0.5,-0.0]), scaleMatrix([0.1,0.1,0.1])), mesh=bunny[0], shader=FlatShader())
         # environment box for reflections
         #self.envbox = EnvironmentBox(scene=self)
 
@@ -228,7 +219,7 @@ class ExeterScene(Scene):
 if __name__ == '__main__':
     # initialises the scene object
     # scene = Scene(shaders='gouraud')
-    scene = ExeterScene()
+    scene = JurassicScene()
 
     # starts drawing the scene
     scene.run()

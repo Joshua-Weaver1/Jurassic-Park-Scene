@@ -35,6 +35,13 @@ def process_line(line):
 			print('(E) Error, 2 entries expected for vertex texture')
 			return None
 
+	#Added for normal vectors	
+	elif fields[0] == 'vn':
+		label = 'normal'
+		if len(fields) != 4:
+			print('(E) Error, 3 entries expected for normal')
+			return None
+
 	elif fields[0] == 'mtllib':
 		label = 'material library'
 		if len(fields) != 2:
