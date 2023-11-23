@@ -24,7 +24,7 @@ class JurassicScene(Scene):
     def __init__(self):
         Scene.__init__(self)
 
-        self.light = LightSource(self, position=[3., 4., -3.])
+        self.light = LightSource(self, position=[0., 4., 3.])
 
         self.shaders='phong'
 
@@ -42,11 +42,12 @@ class JurassicScene(Scene):
         self.sphere = DrawModelFromMesh(scene=self, M=poseMatrix(), mesh=Sphere(), shader=EnvironmentShader(map=self.environment))
         #self.sphere = DrawModelFromMesh(scene=self, M=poseMatrix(), mesh=Sphere(), shader=FlatShader())
 
-        #bunny = load_obj_file('models/bunny_world.obj')
-        #self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,0,0]), scaleMatrix([0.5,0.5,0.5])), mesh=bunny[0], shader=EnvironmentShader(map=self.environment))
+        tri = load_obj_file('models/TRIKERATOPS_CAGE_MODEL.obj')
+        self.tri = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-1.5,-2]), scaleMatrix([0.15,0.15,0.15])), mesh=tri[0], shader=PhongShader())
 
-        bunny = load_obj_file('models/TRIKERATOPS_CAGE_MODEL.obj')
-        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-0.5,-0.5,-0.0]), scaleMatrix([0.1,0.1,0.1])), mesh=bunny[0], shader=FlatShader())
+        bunny = load_obj_file('models/city.obj')
+        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([2,-2,6]), scaleMatrix([0.01,0.01,0.01])), mesh=bunny[0], shader=FlatShader())
+    
         # environment box for reflections
         #self.envbox = EnvironmentBox(scene=self)
 
@@ -55,7 +56,7 @@ class JurassicScene(Scene):
         #self.flattened_cube = FlattenCubeMap(scene=self, cube=CubeMap(name='skybox/ame_ash'))
         self.flattened_cube = FlattenCubeMap(scene=self, cube=self.environment)
 
-        self.show_texture = ShowTexture(self, Texture('lena.bmp'))
+        self.show_texture = ShowTexture(self, Texture('triceratops_diffuse.bmp'))
 
     def draw_shadow_map(self):
         # first we need to clear the scene, we also clear the depth buffer to handle occlusions
@@ -107,13 +108,14 @@ class JurassicScene(Scene):
         if not framebuffer:
             #glEnable(GL_BLEND)
             #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-#            self.envbox.draw()
+            #self.envbox.draw()
             #self.environment.update(self)
             #self.envbox.draw()
 
             self.environment.update(self)
 
             self.bunny.draw()
+            self.tri.draw()
             #self.sphere.draw()
             #glDisable(GL_BLEND)
 

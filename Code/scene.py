@@ -1,4 +1,4 @@
-# pygame is just used to create a window with the operating system on which to draw.
+# pygame is used to create a window on which to draw.
 import pygame
 
 # imports all openGL functions
