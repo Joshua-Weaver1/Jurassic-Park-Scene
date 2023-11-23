@@ -1,7 +1,7 @@
 # imports all openGL functions
 from OpenGL.GL import *
 
-# and we import a bunch of helper functions
+# import a bunch of helper functions
 from matutils import *
 
 from material import Material
@@ -11,19 +11,23 @@ from mesh import Mesh
 from shaders import *
 from texture import Texture
 
-import sys
-
 
 class BaseModel:
-    '''
+    """
     Base class for all models, implementing the basic draw function for triangular meshes.
     Inherit from this to create new models.
-    '''
+    """
 
     def __init__(self, scene, M=poseMatrix(), mesh=Mesh(), color=[1., 1., 1.], primitive=GL_TRIANGLES, visible=True):
-        '''
-        Initialises the model data
-        '''
+        """
+        Initialises the model data and stores the scene reference.
+        :param scene: the scene object
+        :param M: the model matrix for this object
+        :param mesh: the mesh object to draw
+        :param color: the color of the object
+        :param primitive: the primitive to use for drawing, e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.
+        :param visible: whether the model is visible or not
+        """
 
         print('+ Initializing {}'.format(self.__class__.__name__))
 
@@ -48,13 +52,6 @@ class BaseModel:
             self.mesh.textures.append(Texture('lena.bmp'))
 
         self.name = self.mesh.name
-        #self.vertices = None
-        #self.indices = None
-        #self.normals = None
-        #self.vertex_colors = None
-        #self.textureCoords = None
-        #self.textures = []
-
 
         # dict of VBOs
         self.vbos = {}
@@ -62,16 +59,23 @@ class BaseModel:
         # dict of attributes
         self.attributes = {}
 
-        # store the position of the model in the scene, ...
+        # store the position of the model in the scene
         self.M = M
 
-        # We use a Vertex Array Object to pack all buffers for rendering in the GPU (see lecture on OpenGL)
+        # use a Vertex Array Object to pack all buffers for rendering in the GPU
         self.vao = glGenVertexArrays(1)
 
         # this buffer will be used to store indices, if using shared vertex representation
         self.index_buffer = None
 
     def initialise_vbo(self, name, data):
+        """
+        Initialises a VBO for the given attribute name and data.
+        :param name: the name of the attribute, e.g. 'position', 'normal', etc.
+        :param data: the data array to store in the VBO
+        :return: None
+        """
+
         print('Initialising VBO for attribute {}'.format(name))
 
         if data is None:
@@ -83,9 +87,9 @@ class BaseModel:
         # the name of the location must correspond to a 'in' variable in the GLSL vertex shader code
         self.attributes[name] = len(self.vbos)
 
-        # create a buffer object...
+        # create a buffer object
         self.vbos[name] = glGenBuffers(1)
-        # and bind it
+        # then bind it
         glBindBuffer(GL_ARRAY_BUFFER, self.vbos[name])
 
         # enable the attribute
@@ -97,13 +101,17 @@ class BaseModel:
         glVertexAttribPointer(index=self.attributes[name], size=data.shape[1], type=GL_FLOAT, normalized=False,
                               stride=0, pointer=None)
 
-        # ... and we set the data in the buffer as the vertex array
+        # and we set the data in the buffer as the vertex array
         glBufferData(GL_ARRAY_BUFFER, data, GL_STATIC_DRAW)
 
     def bind_shader(self, shader):
-        '''
-        If a new shader is bound, we need to re-link it to ensure attributes are correctly linked.  
-        '''
+        """
+        Binds a shader program to this model.
+        :param shader: the shader program to use for rendering this model
+        :return: None
+        """
+
+        # if the shader is not already bound, or if the name of the shader is different from the one provided
         if self.shader is None or self.shader.name is not shader:
             if isinstance(shader, str):
                 self.shader = PhongShader(shader)
@@ -114,14 +122,15 @@ class BaseModel:
             self.shader.compile(self.attributes)
 
     def bind(self):
-        '''
+        """
         This method stores the vertex data in a Vertex Buffer Object (VBO) that can be uploaded
         to the GPU at render time.
-        '''
+        :return: None
+        """
 
         # bind the VAO to retrieve all buffers and rendering context
         glBindVertexArray(self.vao)
-
+        
         if self.mesh.vertices is None:
             print('(W) Warning in {}.bind(): No vertex array!'.format(self.__class__.__name__))
 
@@ -139,19 +148,22 @@ class BaseModel:
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.index_buffer)
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.mesh.faces, GL_STATIC_DRAW)
 
-        # finally we unbind the VAO and VBO when we're done to avoid side effects
+        # finally unbind the VAO and VBO when we're done to avoid side effects
         glBindVertexArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     def draw(self, Mp=poseMatrix()):
-        '''
+        """
         Draws the model using OpenGL functions.
         :param Mp: The model matrix of the parent object, for composite objects.
         :param shaders: the shader program to use for drawing
-        '''
+        :return: None
+        """
 
+        # if the model is not visible, we do not draw it
         if self.visible:
-
+            
+            # check whether the model has a vertex array
             if self.mesh.vertices is None:
                 print('(W) Warning in {}.draw(): No vertex array!'.format(self.__class__.__name__))
 
@@ -164,8 +176,6 @@ class BaseModel:
                 model=self,
                 M=np.matmul(Mp, self.M)
             )
-
-            #print('---> object {} rendered using shader {}'.format(self.name, self.shader.name))
 
             # bind all textures. Note that your shader needs to handle each one with a sampler object.
             for unit, tex in enumerate(self.mesh.textures):
@@ -184,9 +194,12 @@ class BaseModel:
             glBindVertexArray(0)
 
     def vbo__del__(self):
-        '''
+        """
         Release all VBO objects when finished.
-        '''
+        :return: None
+        """
+
+        # delete all VBOs
         for vbo in self.vbos.items():
             glDeleteBuffers(1, vbo)
 
@@ -199,12 +212,19 @@ class DrawModelFromMesh(BaseModel):
     '''
 
     def __init__(self, scene, M, mesh, name=None, shader=None, visible=True):
-        '''
-        Initialises the model data
-        '''
+        """
+        Initialises the model data and stores the scene reference.
+        :param scene: the scene object
+        :param M: the model matrix for this object
+        :param mesh: the mesh object to draw
+        :param name: the name of the model
+        :param shader: the shader program to use for rendering this model
+        :param visible: whether the model is visible or not
+        """
 
         BaseModel.__init__(self, scene=scene, M=M, mesh=mesh, visible=visible)
 
+        # store the name of the model
         if name is not None:
             self.name = name
 
@@ -212,6 +232,7 @@ class DrawModelFromMesh(BaseModel):
         if self.mesh.faces.shape[1] == 3:
             self.primitive = GL_TRIANGLES
 
+        # if the index array has 4 columns, we use quads
         elif self.mesh.faces.shape[1] == 4:
             self.primitive = GL_QUADS
 
@@ -220,5 +241,6 @@ class DrawModelFromMesh(BaseModel):
 
         self.bind()
 
+        # if a shader is provided, we bind it
         if shader is not None:
             self.bind_shader(shader)
