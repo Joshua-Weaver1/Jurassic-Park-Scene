@@ -1,3 +1,6 @@
+# Description: Tsi file contains the base class for all models,
+# implementing the basic draw function for triangular meshes.
+
 # imports all openGL functions
 from OpenGL.GL import *
 

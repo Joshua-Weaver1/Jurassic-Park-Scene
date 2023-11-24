@@ -1,3 +1,5 @@
+# Description: Environment mapping classes
+
 from BaseModel import BaseModel,DrawModelFromMesh
 from mesh import *
 
@@ -11,7 +13,15 @@ from framebuffer import Framebuffer
 
 
 class EnvironmentShader(BaseShaderProgram):
+    """
+    This shader is used to render the environment map
+    """
     def __init__(self, name='environment', map=None):
+        """
+        Initialize the shader
+        :param name: name of the shader
+        :param map: the environment map
+        """
         BaseShaderProgram.__init__(self, name=name)
         self.add_uniform('sampler_cube')
         self.add_uniform('VM')
@@ -21,9 +31,15 @@ class EnvironmentShader(BaseShaderProgram):
         self.map = map
 
     def bind(self, model, M):
+        """
+        Bind the shader to the model
+        :param model: the model to bind to
+        :param M: the model matrix
+        :return: None
+        """
+
         glUseProgram(self.program)
         if self.map is not None:
-            #self.map.update(model.scene)
             unit = len(model.mesh.textures)
             glActiveTexture(GL_TEXTURE0)
             self.map.bind()
@@ -45,7 +61,16 @@ class EnvironmentShader(BaseShaderProgram):
 
 
 class EnvironmentMappingTexture(CubeMap):
+    """
+    This class implements a cube map for environment mapping
+    """
     def __init__(self, width=200, height=200):
+        """
+        Initialize the cube map
+        :param width: width of the cube map
+        :param height: height of the cube map
+        """
+
         CubeMap.__init__(self)
 
         self.done = False
@@ -53,6 +78,7 @@ class EnvironmentMappingTexture(CubeMap):
         self.width = width
         self.height = height
 
+        # create the texture object
         self.fbos = {
             GL_TEXTURE_CUBE_MAP_NEGATIVE_X: Framebuffer(),
             GL_TEXTURE_CUBE_MAP_POSITIVE_X: Framebuffer(),
@@ -73,23 +99,33 @@ class EnvironmentMappingTexture(CubeMap):
         }
 
         self.bind()
+        # set the texture parameters
         for (face, fbo) in self.fbos.items():
             glTexImage2D(face, 0, self.format, width, height, 0, self.format, self.type, None)
             fbo.prepare(self, face)
         self.unbind()
 
     def update(self, scene):
+        """
+        Update the cube map
+        :param scene: the scene to render
+        :return: None
+        """
+        # if the cube map is already done, do not update it
         if self.done:
             return
 
         self.bind()
-
+        
+        # save the viewport
         Pscene = scene.P
-
+        
+        # set the projection matrix for the cube map
         scene.P = frustumMatrix(-1.0, +1.0, -1.0, +1.0, 1.0, 20.0)
 
         glViewport(0, 0, self.width, self.height)
-
+        
+        # render the scene to the cube map
         for (face, fbo) in self.fbos.items():
             fbo.bind()
             #scene.camera.V = np.identity(4)
@@ -106,13 +142,3 @@ class EnvironmentMappingTexture(CubeMap):
         scene.P = Pscene
 
         self.unbind()
-
-
-
-#class EnvironmentBox(DrawModelFromMesh):
-#    def __init__(self, scene, shader=EnvironmentShader(), width=200, height=200):
-#        self.done = False
-
-        #self.map = EnvironmentMappingTexture(width, height)
-
-        #DrawModelFromMesh.__init__(self, scene=scene, M=poseMatrix(), mesh=CubeMesh(shader.map), shader=shader, visible=False)

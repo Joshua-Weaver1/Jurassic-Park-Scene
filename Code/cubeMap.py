@@ -1,3 +1,5 @@
+# Description: This file contains the classes for handling cube maps and rendering the flattened cube map on the screen.
+
 from texture import *
 from mesh import Mesh
 from BaseModel import DrawModelFromMesh
@@ -6,10 +8,15 @@ from shaders import *
 
 
 class FlattenedCubeShader(BaseShaderProgram):
-    '''
-    Base class for rendering the flattened cube.
-    '''
+    """
+    Base class for the shader program for drawing the flattened cube map.
+    """
+
     def __init__(self):
+        """
+        Initialise the shader program
+        """
+
         BaseShaderProgram.__init__(self, name='flattened_cube')
 
         # the main uniform to add is the cube map.
@@ -17,17 +24,18 @@ class FlattenedCubeShader(BaseShaderProgram):
 
 
 class FlattenCubeMap(DrawModelFromMesh):
-    '''
+    """
     Class for drawing the cube faces flattened on the screen (for debugging purposes)
-    '''
+    """
 
     def __init__(self, scene, cube=None):
         '''
         Initialises the
         :param scene: The scene object.
         :param cube: [optional] if not None, the cubemap texture to draw (can be set at a later stage using the set() method)
+        :return: None
         '''
-
+        # set the vertices of the flattened cube
         vertices = np.array([
 
             [-2.0, -1.0, 0.0],  # 0 --> left
@@ -112,20 +120,22 @@ class FlattenCubeMap(DrawModelFromMesh):
         DrawModelFromMesh.__init__(self, scene=scene, M=poseMatrix(position=[0,0,+1]), mesh=mesh, shader=FlattenedCubeShader(), visible=False)
 
     def set(self, cube):
-        '''
-        Set the cube map to display
-        :param cube: A CubeMap texture
-        '''
+        """
+        Set the cube map texture to draw.
+        :param cube: The cube map texture to draw.
+        :return: None
+        """
+
         self.mesh.textures = [cube]
 
 
 class CubeMap(Texture):
-    '''
-    Class for handling a cube map texture.
+    """
+    Class for handling cube maps.
+    """
 
-    '''
     def __init__(self, name=None, files=None, wrap=GL_CLAMP_TO_EDGE, sample=GL_LINEAR, format=GL_RGBA, type=GL_UNSIGNED_BYTE):
-        '''
+        """
         Initialise the cube map texture object
         :param name: If a name is provided, the function will load the faces of the cube from files on the disk in a
         folder of this name
@@ -134,7 +144,7 @@ class CubeMap(Texture):
         :param sample: Which sampling to use, default is GL_LINEAR
         :param format: The pixel format of the image and texture (GL_RGBA). Do not change.
         :param type: The data format for the texture. Default is GL_UNSIGNED_BYTE (should not be changed)
-        '''
+        """
         self.name = name
         self.format = format
         self.type = type
@@ -174,12 +184,14 @@ class CubeMap(Texture):
         self.unbind()
 
     def set(self, name, files=None):
-        '''
-        Load the cube's faces from images on the disk
-        :param name: The folder in which the images are.
-        :param files: A dictionary containing the file name for each face.
-        '''
-
+        """
+        Load the cube map from files on disk.
+        :param name: The name of the folder containing the cube map faces.
+        :param files: [optional] If provided, a dictionary containing the file name for each face.
+        :return: None
+        """
+        
+        # if files is provided, use it, otherwise use the default dictionary
         if files is not None:
             self.files = files
 

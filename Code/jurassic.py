@@ -43,7 +43,7 @@ class JurassicScene(Scene):
         #self.sphere = DrawModelFromMesh(scene=self, M=poseMatrix(), mesh=Sphere(), shader=FlatShader())
 
         tri = load_obj_file('models/TRIKERATOPS_CAGE_MODEL.obj')
-        self.tri = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-1.5,-2]), scaleMatrix([0.15,0.15,0.15])), mesh=tri[0], shader=PhongShader())
+        self.tri = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-1.5,-2]), scaleMatrix([0.15,0.15,0.15])), mesh=tri[0], shader=EnvironmentShader(map=self.environment))
 
         bunny = load_obj_file('models/city.obj')
         self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([2,-2,6]), scaleMatrix([0.01,0.01,0.01])), mesh=bunny[0], shader=FlatShader())
