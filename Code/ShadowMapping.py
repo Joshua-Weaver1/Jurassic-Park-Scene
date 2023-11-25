@@ -1,3 +1,5 @@
+# Description: This file contains the classes for the shadow mapping.
+
 from OpenGL.GL import *
 from matutils import *
 
@@ -15,8 +17,6 @@ def normalize(v):
 def lookAt(eye, center, up=np.array([0, 1, 0])):
     f = normalize(center - eye)
     u = normalize(up)
-
-    # Note: the normalization is missing in the official glu manpage: /: /: /
     s = normalize(np.cross(f, u))
     u = np.cross(s, f)
 
@@ -117,15 +117,15 @@ class ShowTexture(DrawModelFromMesh):
 
 
 class ShadowMap(Texture):
+    """
+    Class for drawing the shadow map.
+    """
     def __init__(self, light=None, width=1000, height=1000):
-
-        # In order to call parent constructor I would need to change it to allow for an empty texture object (poor design)
-        # Texture.__init__(self, "shadow", img=None, wrap=GL_CLAMP_TO_EDGE, sample=GL_NEAREST, format=GL_DEPTH_COMPONENT, type=GL_FLOAT, target=GL_TEXTURE_2D)
 
         # we save the light source
         self.light = light
 
-        # we'll just copy and modify the code here
+        # copy and modify the code here
         self.name = 'shadow'
         self.format = GL_DEPTH_COMPONENT
         self.type = GL_FLOAT
@@ -154,6 +154,12 @@ class ShadowMap(Texture):
         self.V = None
 
     def render(self, scene, target=[0, 0, 0]):
+        """
+        Render the shadow map.
+        :param scene: The scene object.
+        :param target: The target to look at.
+        :return: None
+        """
         # backup the view matrix and replace with the new one
         #self.P = scene.P
         if self.light is not None:

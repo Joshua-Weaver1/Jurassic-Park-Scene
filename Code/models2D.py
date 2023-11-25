@@ -1,3 +1,5 @@
+# Description: This file contains the definition of all the 2D models used in the scene.
+
 from BaseModel import BaseModel
 from OpenGL.GL import *
 from matutils import *

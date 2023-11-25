@@ -1,3 +1,5 @@
+# Description: This file contains the Scene class, which is used to represent a scene in the program.
+
 # pygame is used to create a window on which to draw.
 import pygame
 
@@ -18,7 +20,8 @@ from lightSource import LightSource
 
 class Scene:
     """
-    This class represents a scene, which is a collection of models to draw."""
+    This class represents a scene, which is a collection of models to draw.
+    """
     def __init__(self, width=800, height=600, shaders=None):
         """
         Initialises the scene.

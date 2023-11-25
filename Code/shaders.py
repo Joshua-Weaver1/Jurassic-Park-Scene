@@ -1,3 +1,5 @@
+# Description: This file contains the code for loading and compiling GLSL shaders.
+
 # imports all openGL functions
 from OpenGL.GL import *
 from OpenGL.GL import shaders
@@ -7,10 +9,9 @@ import numpy as np
 
 
 class Uniform:
-    '''
-    We create a simple class to handle uniforms, this is not necessary,
-    but allow to put all relevant code in one place
-    '''
+    """
+    Create a simple class to handle uniforms which allows to put all relevant code in one place
+    """
     def __init__(self, name, value=None):
         '''
         Initialise the uniform parameter
@@ -21,23 +22,23 @@ class Uniform:
         self.location = -1
 
     def link(self, program):
-        '''
+        """
         This function needs to be called after compiling the GLSL program to fetch the location of the uniform
         in the program from its name
         :param program: the GLSL program where the uniform is used
-        '''
+        :return: None
+        """
         self.location = glGetUniformLocation(program=program, name=self.name)
         if self.location == -1:
             print('(E) Warning, no uniform {}'.format(self.name))
 
     def bind_matrix(self, M=None, number=1, transpose=True):
-        '''
+        """
         Call this before rendering to bind the Python matrix to the GLSL uniform mat4.
-        You will need different methods for different types of uniform, but for now this will
-        do for the PVM matrix
         :param number: the number of matrices sent, leave that to 1 for now
         :param transpose: Whether the matrix should be transposed
-        '''
+        :return: None
+        """
         if M is not None:
             self.value = M
         if self.value.shape[0] == 4 and self.value.shape[1] == 4:
@@ -93,16 +94,16 @@ class Uniform:
 
 
 class BaseShaderProgram:
-    '''
+    """
     This is the base class for loading and compiling the GLSL shaders.
-    '''
+    """
 
     def __init__(self, name=None, vertex_shader=None, fragment_shader=None):
-        '''
+        """
         Initialises the shaders
         :param vertex_shader: the name of the file containing the vertex shader GLSL code
         :param fragment_shader: the name of the file containing the fragment shader GLSL code
-        '''
+        """
 
         self.name = name
         print('Creating shader program: {}'.format(name) )
@@ -128,7 +129,6 @@ class BaseShaderProgram:
             print('Load vertex shader from file: {}'.format(vertex_shader))
             with open(vertex_shader, 'r') as file:
                 self.vertex_shader_source = file.read()
-            # print(self.vertex_shader_source)
 
         # load the fragment shader GLSL code
         if fragment_shader is None:
@@ -164,10 +164,6 @@ class BaseShaderProgram:
             glAttachShader(self.program, shaders.compileShader(self.vertex_shader_source, shaders.GL_VERTEX_SHADER))
             glAttachShader(self.program, shaders.compileShader(self.fragment_shader_source, shaders.GL_FRAGMENT_SHADER))
 
-            #self.program = shaders.compileProgram(
-            #    shaders.compileShader(self.vertex_shader_source, shaders.GL_VERTEX_SHADER),
-            #    shaders.compileShader(self.fragment_shader_source, shaders.GL_FRAGMENT_SHADER)
-            #)
         except RuntimeError as error:
             print('(E) An error occured while compiling {} shader:\n {}\n... forwarding exception...'.format(self.name, error)),
             raise error
@@ -235,7 +231,6 @@ class PhongShader(BaseShaderProgram):
             'Is': Uniform('Is'),
             'has_texture': Uniform('has_texture'),
             'textureObject': Uniform('textureObject')
-            #'textureObject2': Uniform('textureObject2'),
 
         }
 
@@ -301,19 +296,4 @@ class PhongShader(BaseShaderProgram):
 class FlatShader(PhongShader):
     def __init__(self):
         PhongShader.__init__(self, name='flat')
-
-
-class GouraudShader(PhongShader):
-    def __init__(self):
-        PhongShader.__init__(self, name='gouraud')
-
-
-class BlinnShader(PhongShader):
-    def __init__(self):
-        PhongShader.__init__(self, name='blinn')
-
-
-class TextureShader(PhongShader):
-    def __init__(self):
-        PhongShader.__init__(self, name='texture')
 

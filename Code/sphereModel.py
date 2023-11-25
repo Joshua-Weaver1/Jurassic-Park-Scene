@@ -1,3 +1,6 @@
+# Description: This file contains the Sphere class, which is a subclass of the Mesh class.
+# The Sphere class is used to create a sphere mesh.
+
 from BaseModel import BaseModel
 from matutils import poseMatrix
 # imports all openGL functions
@@ -9,7 +12,16 @@ from texture import Texture
 
 
 class Sphere(Mesh):
+    """
+    A class for creating a sphere mesh.
+    """
     def __init__(self, nvert=10, nhoriz=20, material=Material(Ka=[0.5,0.5,0.5], Kd=[0.6,0.6,0.9], Ks=[1.,1.,0.9], Ns=15.0)):
+        """
+        Initialises the sphere mesh.
+        :param nvert: The number of vertical slices.
+        :param nhoriz: The number of horizontal slices.
+        :param material: The material of the sphere.
+        """
         n = (nvert-1)*nhoriz+2
         vertices = np.zeros((n, 3), 'f')
         vertex_colors = np.zeros((n, 3), 'f')

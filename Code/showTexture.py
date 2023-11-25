@@ -1,3 +1,5 @@
+# Description: This file contains the code for the ShowTexture class
+
 from BaseModel import *
 
 def normalize(v):
@@ -21,7 +23,7 @@ def lookAt(eye, center, up=np.array([0, 1, 0])):
     f = normalize(center - eye)
     u = normalize(up)
 
-    # Note: the normalization is missing in the official glu manpage: /: /: /
+    # Note: the normalization is missing in the official glu manpage
     s = normalize(np.cross(f, u))
     u = np.cross(s, f)
 

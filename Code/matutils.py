@@ -1,7 +1,14 @@
+# Description: A collection of useful matrix utilities for 3D graphics
+
 import numpy as np
 
 
 def scaleMatrix(scale):
+    """
+    Returns a scale matrix.
+    :param scale: The scale factor, either a scalar for isotropic scaling, or vector of scale factors
+    :return: The scale matrix
+    """
     if np.isscalar(scale):
         scale = [scale, scale, scale]
 
@@ -10,6 +17,11 @@ def scaleMatrix(scale):
 
 
 def translationMatrix(t):
+    """
+    Returns a translation matrix.
+    :param t: The translation vector
+    :return: The translation matrix
+    """
     n = len(t)
     T = np.identity(n+1,dtype='f')
     T[:n,-1] = t
@@ -17,6 +29,11 @@ def translationMatrix(t):
 
 
 def rotationMatrixZ(angle):
+    """
+    Returns a rotation matrix around the Z axis.
+    :param angle: The rotation angle in radians
+    :return: The rotation matrix
+    """
     c = np.cos(angle)
     s = np.sin(angle)
     R = np.identity(4)
@@ -28,6 +45,11 @@ def rotationMatrixZ(angle):
 
 
 def rotationMatrixX(angle):
+    """
+    Returns a rotation matrix around the X axis.
+    :param angle: The rotation angle in radians
+    :return: The rotation matrix
+    """
     c = np.cos(angle)
     s = np.sin(angle)
     R = np.identity(4)
@@ -39,6 +61,11 @@ def rotationMatrixX(angle):
 
 
 def rotationMatrixY(angle):
+    """
+    Returns a rotation matrix around the Y axis.
+    :param angle: The rotation angle in radians
+    :return: The rotation matrix
+    """
     c = np.cos(angle)
     s = np.sin(angle)
     R = np.identity(4)
@@ -87,6 +114,16 @@ def orthoMatrix(l,r,t,b,n,f):
     )
 
 def frustumMatrix(l,r,t,b,n,f):
+    """
+    Returns a frustum projection matrix.
+    :param l: left clip plane
+    :param r: right clip plane
+    :param t: top clip plane
+    :param b: bottom clip plane
+    :param n: near clip plane
+    :param f: far clip plane
+    :return: A 4x4 frustum projection matrix
+    """
     return np.array(
         [
             [ 2*n/(r-l),      0,          (r+l)/(r-l),    0 ],
@@ -99,12 +136,27 @@ def frustumMatrix(l,r,t,b,n,f):
 
 # Homogeneous coordinates helpers
 def homog(v):
+    """
+    Returns the homogeneous coordinates of a vector.
+    :param v: The vector
+    :return: The homogeneous coordinates of the vector
+    """
     return np.hstack([v,1])
 
 def unhomog(vh):
+    """
+    Returns the un-homogenised coordinates of a vector.
+    :param vh: The vector in homogeneous coordinates
+    :return: The un-homogenised coordinates of the vector
+    """
     return vh[:-1]/vh[-1]
 
 def matmul(L):
+    """
+    Returns the product of a list of matrices.
+    :param L: The list of matrices
+    :return: The product of the matrices
+    """
     R = L[0]
     for M in L[1:]:
         R = np.matmul(R,M)

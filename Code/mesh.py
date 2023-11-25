@@ -1,3 +1,5 @@
+# Description: This file contains the Mesh class, which is used to store the mesh data.
+
 from material import Material
 import numpy as np
 
@@ -5,10 +7,9 @@ from texture import Texture
 
 
 class Mesh:
-    '''
-    Simple class to hold a mesh data. For now we will only focus on vertices, faces (indices of vertices for each face)
-    and normals.
-    '''
+    """
+    This class represents a mesh in the scene.
+    """
     def __init__(self, vertices=None, faces=None, normals=None, textureCoords=None, material=Material()):
         '''
         Initialises a mesh object.
@@ -27,16 +28,14 @@ class Mesh:
         self.tangents = None
         self.binormals = None
 
+        # print some information about the mesh
         if vertices is not None:
             print('Creating mesh')
             print('- {} vertices'.format(self.vertices.shape[0]))
             if faces is not None:
                 print('- {} faces'.format(self.faces.shape[0]))
 
-        #if faces is not None:
-        #    print('- {} vertices per face'.format(self.faces.shape[1]))
-            #print('- vertices ID in range [{},{}]'.format(np.min(self.faces.flatten()), np.max(self.faces.flatten())))
-
+        # calculate normals if not provided
         if normals is None:
             if faces is None:
                 print('(W) Warning: the current code only calculates normals using the face vector of indices, which was not provided here.')
@@ -46,25 +45,23 @@ class Mesh:
             self.normals = normals
 
         if material.texture is not None:
+            # load the texture e.g from a file
             self.textures.append(Texture(material.texture))
-            #self.textures.append(Texture('lena.bmp'))
 
 
     def calculate_normals(self):
-        '''
-        method to calculate normals from the mesh faces.
-        TODO WS3: Fix this code to calculate the correct normals
-        Use the approach discussed in class:
+        """
+        Calculates the normals for each vertex in the mesh.
+        :return: None
         1. calculate normal for each face using cross product
         2. set each vertex normal as the average of the normals over all faces it belongs to.
-        '''
+        """
 
         self.normals = np.zeros((self.vertices.shape[0], 3), dtype='f')
         if self.textureCoords is not None:
             self.tangents = np.zeros((self.vertices.shape[0], 3), dtype='f')
             self.binormals = np.zeros((self.vertices.shape[0], 3), dtype='f')
 
-        #TODO WS3
         for f in range(self.faces.shape[0]):
             # first calculate the face normal using the cross product of the triangle's sides
             a = self.vertices[self.faces[f, 1]] - self.vertices[self.faces[f, 0]]
@@ -93,7 +90,15 @@ class Mesh:
 
 
 class CubeMesh(Mesh):
+    """
+    This class represents a cube mesh in the scene.
+    """
     def __init__(self, texture=None, inside=False):
+        """
+        Initialises a cube mesh object.
+        :param texture: [optional] A texture to apply to the cube.
+        :param inside: [optional] Whether to render the cube from the inside or not.
+        """
 
         vertices = np.array([
 

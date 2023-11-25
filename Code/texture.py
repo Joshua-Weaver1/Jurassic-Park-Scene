@@ -1,9 +1,14 @@
+# Description: This file contains the Texture class which is used to load textures from files and store them in OpenGL.
+
 import pygame
 from OpenGL.GL import *
 import numpy as np
 
 
 class ImageWrapper:
+    """
+    Class to wrap a python image object and provide the data in a format suitable for OpenGL.
+    """
     def __init__(self, name):
         # load the image from file using pyGame - any other image reading function could be used here.
         print('Loading image: texture/{}'.format(name))
@@ -28,6 +33,16 @@ class Texture:
     Class to handle texture loading.
     '''
     def __init__(self, name, img=None, wrap=GL_REPEAT, sample=GL_NEAREST, format=GL_RGBA, type=GL_UNSIGNED_BYTE, target=GL_TEXTURE_2D):
+        """
+        Initialises the texture.
+        :param name: The name of the texture file to load.
+        :param img: [optional] If provided, the image data to use for the texture.
+        :param wrap: [optional] The wrap parameter for the texture.
+        :param sample: [optional] The sampling parameter for the texture.
+        :param format: [optional] The format of the texture.
+        :param type: [optional] The type of the texture.
+        :param target: [optional] The target of the texture.
+        """
         self.name = name
         self.format = format
         self.type = type

@@ -1,3 +1,5 @@
+# Desc: This file contains the main code for the Jurassic Park scene.
+
 import pygame
 
 # import the scene class
@@ -21,17 +23,25 @@ from skyBox import *
 from environmentMapping import *
 
 class JurassicScene(Scene):
+    """
+    This class implements the Jurassic Park scene.
+    """
     def __init__(self):
+        """
+        Initialises the scene.
+        """
         Scene.__init__(self)
 
+        # create the light source
         self.light = LightSource(self, position=[0., 4., 3.])
-
+        # set the shader to use
         self.shaders='phong'
 
         # for shadow map rendering
         self.shadows = ShadowMap(light=self.light)
         self.show_shadow_map = ShowTexture(self, self.shadows)
 
+        # load the models
         # draw a skybox
         self.skybox = SkyBox(scene=self)
 
@@ -40,56 +50,51 @@ class JurassicScene(Scene):
         self.environment = EnvironmentMappingTexture(width=400, height=400)
 
         self.sphere = DrawModelFromMesh(scene=self, M=poseMatrix(), mesh=Sphere(), shader=EnvironmentShader(map=self.environment))
-        #self.sphere = DrawModelFromMesh(scene=self, M=poseMatrix(), mesh=Sphere(), shader=FlatShader())
 
         tri = load_obj_file('models/TRIKERATOPS_CAGE_MODEL.obj')
-        self.tri = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-1.5,-2]), scaleMatrix([0.15,0.15,0.15])), mesh=tri[0], shader=EnvironmentShader(map=self.environment))
+        self.tri = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-5,-2]), scaleMatrix([0.15,0.15,0.15])), mesh=tri[0], shader=FlatShader())
 
         bunny = load_obj_file('models/city.obj')
-        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([2,-2,6]), scaleMatrix([0.01,0.01,0.01])), mesh=bunny[0], shader=FlatShader())
-    
-        # environment box for reflections
-        #self.envbox = EnvironmentBox(scene=self)
+        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([3,-5,9]), scaleMatrix([0.01,0.01,0.01])), mesh=bunny[0], shader=FlatShader())
 
-        # this object allows to visualise the flattened cube
+        box = load_obj_file('models/postbox.obj')
+        self.box = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-5,-2]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
 
-        #self.flattened_cube = FlattenCubeMap(scene=self, cube=CubeMap(name='skybox/ame_ash'))
+        #show the flattened cube map
         self.flattened_cube = FlattenCubeMap(scene=self, cube=self.environment)
 
+        # show the texture to the ticeratops
         self.show_texture = ShowTexture(self, Texture('triceratops_diffuse.bmp'))
 
     def draw_shadow_map(self):
+        """
+        Draw the shadow map.
+        :return: None
+        """
+
         # first we need to clear the scene, we also clear the depth buffer to handle occlusions
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        # also all models from the table
-        #for model in self.table:
-            #model.draw()
-
-        # and for the box
-        #for model in self.box:
-            #model.draw()
+        self.tri.draw()
 
     def draw_reflections(self):
+        """
+        Draw the reflections.
+        :return: None
+        """
+
         self.skybox.draw()
 
         for model in self.models:
             model.draw()
 
-        # also all models from the table
-        ##for model in self.table:
-            #model.draw()
-
-        # and for the box
-        #for model in self.box:
-            #model.draw()
-
 
     def draw(self, framebuffer=False):
-        '''
-        Draw all models in the scene
+        """
+        Draw the scene.
+        :param framebuffer: Whether to render to a framebuffer or not.
         :return: None
-        '''
+        """
 
         # first we need to clear the scene, we also clear the depth buffer to handle occlusions
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -106,18 +111,12 @@ class JurassicScene(Scene):
 
         # when rendering the framebuffer we ignore the reflective object
         if not framebuffer:
-            #glEnable(GL_BLEND)
-            #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-            #self.envbox.draw()
-            #self.environment.update(self)
-            #self.envbox.draw()
 
             self.environment.update(self)
 
             self.bunny.draw()
             self.tri.draw()
-            #self.sphere.draw()
-            #glDisable(GL_BLEND)
+            self.box.draw()
 
             # if enabled, show flattened cube
             self.flattened_cube.draw()
@@ -131,27 +130,19 @@ class JurassicScene(Scene):
         for model in self.models:
             model.draw()
 
-        # also all models from the table
-        #for model in self.table:
-            #model.draw()
-
-        # and for the box
-        #for model in self.box:
-            #model.draw()
-
         self.show_light.draw()
 
-        # once we are done drawing, we display the scene
-        # Note that here we use double buffering to avoid artefacts:
-        # we draw on a different buffer than the one we display,
-        # and flip the two buffers once we are done drawing.
+        # flip the two buffers once we are done drawing.
         if not framebuffer:
             pygame.display.flip()
 
     def keyboard(self, event):
-        '''
-        Process additional keyboard events for this demo.
-        '''
+        """
+        Handles keyboard events.
+        :param event: The keyboard event.
+        :return: None
+        """
+
         Scene.keyboard(self, event)
 
         if event.key == pygame.K_c:
@@ -220,7 +211,6 @@ class JurassicScene(Scene):
 
 if __name__ == '__main__':
     # initialises the scene object
-    # scene = Scene(shaders='gouraud')
     scene = JurassicScene()
 
     # starts drawing the scene
