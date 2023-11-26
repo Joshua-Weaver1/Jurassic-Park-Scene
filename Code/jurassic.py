@@ -51,15 +51,25 @@ class JurassicScene(Scene):
 
         self.sphere = DrawModelFromMesh(scene=self, M=poseMatrix(), mesh=Sphere(), shader=EnvironmentShader(map=self.environment))
 
+        # triceratops
         tri = load_obj_file('models/TRIKERATOPS_CAGE_MODEL.obj')
-        self.tri = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-5,-2]), scaleMatrix([0.15,0.15,0.15])), mesh=tri[0], shader=FlatShader())
+        self.tri = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-10,1]), scaleMatrix([0.15,0.15,0.15])), mesh=tri[0], shader=FlatShader())
 
         bunny = load_obj_file('models/city.obj')
-        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([3,-5,9]), scaleMatrix([0.01,0.01,0.01])), mesh=bunny[0], shader=FlatShader())
+        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([3,-10.5,9]), scaleMatrix([0.01,0.04,0.01])), mesh=bunny[0], shader=FlatShader())
 
         box = load_obj_file('models/postbox.obj')
-        self.box = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-5,-2]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
+        self.box = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([2,-10,-5]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
 
+        r1 = load_obj_file('models/3Roads.obj')
+        self.r1 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-1.7,-10, -1]), scaleMatrix([0.5, 0.5, 0.5])), mesh=r1[0], shader=PhongShader())
+        r2 = load_obj_file('models/3Roads.obj')
+        self.r2 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-1.7,-10, 1]), scaleMatrix([0.5, 0.5, 0.5])), mesh=r2[0], shader=PhongShader())
+        r3 = load_obj_file('models/3Roads.obj')
+        self.r3 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-1.7,-10, 3]), scaleMatrix([0.5, 0.5, 0.5])), mesh=r3[0], shader=PhongShader())
+        r4 = load_obj_file('models/3Roads.obj')
+        self.r4 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-1.7,-10, 5]), scaleMatrix([0.5, 0.5, 0.5])), mesh=r4[0], shader=PhongShader())
+        
         #show the flattened cube map
         self.flattened_cube = FlattenCubeMap(scene=self, cube=self.environment)
 
@@ -117,6 +127,10 @@ class JurassicScene(Scene):
             self.bunny.draw()
             self.tri.draw()
             self.box.draw()
+            self.r1.draw()
+            self.r2.draw()
+            self.r3.draw()
+            self.r4.draw()
 
             # if enabled, show flattened cube
             self.flattened_cube.draw()
