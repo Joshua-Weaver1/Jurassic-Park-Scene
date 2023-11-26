@@ -56,13 +56,13 @@ class JurassicScene(Scene):
         self.tri = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-10,1]), scaleMatrix([0.15,0.15,0.15])), mesh=tri[0], shader=FlatShader())
 
         bunny = load_obj_file('models/city.obj')
-        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([3,-10.5,9]), scaleMatrix([0.01,0.04,0.01])), mesh=bunny[0], shader=FlatShader())
+        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([3,-11.5,9]), scaleMatrix([0.01,0.04,0.01])), mesh=bunny[0], shader=FlatShader())
 
         box = load_obj_file('models/postbox.obj')
         self.box = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([2,-10,-5]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
 
         r1 = load_obj_file('models/3Roads.obj')
-        self.r1 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-1.7,-10, -1]), scaleMatrix([0.5, 0.5, 0.5])), mesh=r1[0], shader=PhongShader())
+        self.r1 = DrawModelFromMesh(scene=self, M=np.matmul(np.matmul(translationMatrix([-1.7,-10, -1]), scaleMatrix([0.5, 0.5, 0.5])), rotationMatrixY(1.5708)), mesh=r1[0], shader=PhongShader())
         r2 = load_obj_file('models/3Roads.obj')
         self.r2 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-1.7,-10, 1]), scaleMatrix([0.5, 0.5, 0.5])), mesh=r2[0], shader=PhongShader())
         r3 = load_obj_file('models/3Roads.obj')
