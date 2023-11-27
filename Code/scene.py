@@ -60,7 +60,8 @@ class Scene:
 
         # initialise the projective transform
         near = 1.0
-        far = 20.0
+        # need a sufficiently large far plane to avoid clipping
+        far = 100.0
         left = -1.0
         right = 1.0
         top = -1.0

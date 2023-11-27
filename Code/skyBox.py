@@ -46,7 +46,8 @@ class SkyBox(DrawModelFromMesh):
         Initialises the skybox.
         :param scene: The scene object.
         """
-        DrawModelFromMesh.__init__(self, scene=scene, M=poseMatrix(scale=10.0),
+        # scale the skybox to 20 to be large enough to cover the scene
+        DrawModelFromMesh.__init__(self, scene=scene, M=poseMatrix(scale=20.0),
                                    mesh=CubeMesh(texture=CubeMap(name='skybox/london'), inside=True),
                                    shader=SkyBoxShader(), name='skybox')
 
