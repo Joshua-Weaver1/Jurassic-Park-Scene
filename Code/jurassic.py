@@ -64,13 +64,14 @@ class JurassicScene(Scene):
         self.box = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-4,-20, 4]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
 
         # Set the initial and target positions for the raptor
-        self.raptor_start_position = np.array([-4, -20, 4])
-        self.raptor_target_position = np.array([-15, 5, -13])  # Replace with your desired target position
+        self.raptor_start_position = np.array([-12,-20, -17])
+        self.raptor_target_position = np.array([12, -20, -17])  # Replace with your desired target position
         self.raptor_current_position = self.raptor_start_position
         self.lerp_factor = 0.0  # Initial interpolation factor
 
         raptor = load_obj_file('models/RAPTOR_CAGE_MODEL.obj')
-        self.raptor = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-4,-20, 4]), scaleMatrix([1, 1, 1])), mesh=raptor[0], shader=PhongShader())
+        self.raptor = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-12,-20, -17]), scaleMatrix([1, 1, 1])), mesh=raptor[0], shader=PhongShader())
+        self.raptor2 = DrawModelFromMesh(scene=self, M=np.matmul(np.matmul(translationMatrix([9,-20, 15]), scaleMatrix([1, 1, 1])), rotationMatrixY(4.71239)), mesh=raptor[0], shader=PhongShader())
 
         # road pieces
         r1 = load_obj_file('models/3Roads.obj')
@@ -155,7 +156,8 @@ class JurassicScene(Scene):
         # first we need to clear the scene, we also clear the depth buffer to handle occlusions
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        self.tri.draw()
+        for model in self.models:
+            model.draw()
 
     def draw_reflections(self):
         """
@@ -200,6 +202,8 @@ class JurassicScene(Scene):
             self.tri.draw()
             self.box.draw()
             self.raptor.draw()
+            self.raptor2.draw()
+
             self.r1.draw()
             self.r2.draw()
             self.r3.draw()
