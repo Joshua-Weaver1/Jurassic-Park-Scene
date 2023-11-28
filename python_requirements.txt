@@ -1,0 +1,30 @@
+This is my ECM3423: Computer Graphics Final Project - 3D Jurassic Park Scene.
+@Author: Joshua Weaver
+
+## Requirements
+-- Python 3.11.5. To install Python 3.11.5, please visit https://www.python.org/downloads/release/python-3115/ and download the appropriate installer for your operating system.
+-- Numpy library. To install Numpy, please visit https://numpy.org/install/ and follow the instructions for your operating system.
+-- If you use pip, you can install NumPy with: `pip install numpy`
+-- Pygame 2.5.2. To install Pygame, visit https://www.pygame.org/news and follow the instructions for your operating system.
+-- If you use pip, you can install Pygame with: `python -m pip install -U pygame==2.5.2 --user`
+-- PyOpenGL. To install PyOpenGL, visit https://pypi.org/project/PyOpenGL/ and follow the instructions for your operating system.
+-- If you use pip, you can install PyOpenGL with: `pip install PyOpenGL`
+
+## How to run
+-- Clone this repository to your local machine.
+-- Open the Code Folder in your IDE of choice.
+-- Run the jurassic.py file.
+
+## Model References
+-- [City] (https://www.cgtrader.com/free-3d-models/exterior/cityscape/low-poly-city-ab4d8e60-de2b-41d3-8669-632a4e240701)
+-- [Triceratops] (https://www.cgtrader.com/free-3d-models/scanned/various/triceratops-photogrammetry)
+-- [Velociraptor] (https://www.cgtrader.com/free-3d-models/scanned/various/raptor-photogrammetry)
+-- [Tank] (https://www.cgtrader.com/free-3d-models/military/military-vehicle/tank-m1a1-base-mesh-free)
+-- [Postbox] (https://www.cgtrader.com/free-3d-print-models/miniatures/architecture/photoscanned-london-mail-post-service-box)
+-- [Road] (https://www.cgtrader.com/free-3d-models/exterior/street-exterior/low-poly-free-3d-roads)
+-- [Car] (https://www.cgtrader.com/free-3d-models/car/luxury-car/destroyed-mercedes-photogrammetry)
+-- [Skybox] (https://polyhaven.com/a/belfast_sunset_puresky)
+
+## Link to Video
+-- [OneDrive] (https://1drv.ms/v/s!Aps5WDLLaUPu4Ehd3UAd-E327bLk?e=VRKzHz)
+-- [YouTube] (https://www.youtube.com/watch?v=2QTmkt6oVqc&t=171s)
