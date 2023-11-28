@@ -35,7 +35,7 @@ class JurassicScene(Scene):
         Scene.__init__(self)
 
         # create the light source
-        self.light = LightSource(self, position=[0., 4., 3.])
+        self.light = LightSource(self, position=[0., 8., 3.])
         # set the shader to use
         self.shaders='phong'
 
@@ -62,21 +62,27 @@ class JurassicScene(Scene):
 
         box = load_obj_file('models/postbox.obj')
         self.box = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-4,-20, 4]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
-        
+        self.box2 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-4,-20, -6]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
+        self.box3 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([8,-20, 4]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
+        self.box4 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([9,-20, -15]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
+
         car = load_obj_file('models/car.obj')
         self.car = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-12,-20, 5]), scaleMatrix([0.4, 0.4, 0.4])), mesh=car[0], shader=PhongShader())
 
         tank = load_obj_file('models/tank.obj')
         self.tank = DrawModelFromMesh(scene=self, M=np.matmul(np.matmul(translationMatrix([-12,-20, 2]), scaleMatrix([0.015, 0.015, 0.015])), rotationMatrixY(1.5708)), mesh=tank[0], shader=PhongShader())
+        tank2 = load_obj_file('models/tank2.obj')
+        self.tank2 = DrawModelFromMesh(scene=self, M=np.matmul(np.matmul(translationMatrix([4,-20, -12]), scaleMatrix([0.015, 0.015, 0.015])), rotationMatrixY(4)), mesh=tank2[0], shader=PhongShader())
 
         # Set the initial and target positions for the raptor
-        self.raptor_start_position = np.array([-12,-20, -17])
-        self.raptor_target_position = np.array([12, -20, -17])  # Replace with your desired target position
+        self.raptor_start_position = np.array([-14,-20, -17])
+        self.raptor_target_position = np.array([10, -20, -17])  # Replace with your desired target position
         self.raptor_current_position = self.raptor_start_position
         self.lerp_factor = 0.0  # Initial interpolation factor
+        self.total_rotation = 0.0  # Track the total rotation applied to the raptor
 
         raptor = load_obj_file('models/RAPTOR_CAGE_MODEL.obj')
-        self.raptor = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-12,-20, -17]), scaleMatrix([1, 1, 1])), mesh=raptor[0], shader=PhongShader())
+        self.raptor = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-14,-20, -17]), scaleMatrix([1, 1, 1])), mesh=raptor[0], shader=PhongShader())
         self.raptor2 = DrawModelFromMesh(scene=self, M=np.matmul(np.matmul(translationMatrix([9,-20, 15]), scaleMatrix([1, 1, 1])), rotationMatrixY(4.71239)), mesh=raptor[0], shader=PhongShader())
 
         # road pieces
@@ -133,25 +139,36 @@ class JurassicScene(Scene):
         self.r43 = DrawModelFromMesh(scene=self, M=np.matmul(np.matmul(translationMatrix([10.5,-20, -17]), scaleMatrix([0.8, 0.8, 0.8])), rotationMatrixY(1.5708)), mesh=r1[0], shader=PhongShader())
         self.r44 = DrawModelFromMesh(scene=self, M=np.matmul(np.matmul(translationMatrix([-1.7,-20, -17]), scaleMatrix([0.8, 0.8, 0.8])), rotationMatrixY(1.5708)), mesh=r1[0], shader=PhongShader())
 
+        self.r45 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-12,-20, -14]), scaleMatrix([0.8, 0.8, 0.8])), mesh=r1[0], shader=PhongShader())
+        self.r46 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-12,-20, -11]), scaleMatrix([0.8, 0.8, 0.8])), mesh=r1[0], shader=PhongShader())
+
         self.flattened_cube = FlattenCubeMap(scene=self, cube=self.environment)
 
         # show the texture to the ticeratops
         self.show_texture = ShowTexture(self, Texture('triceratops_diffuse.bmp'))
     
     def update_raptor_position(self):
-        # Update the raptor's position
+        # Update the raptor's position and rotation
         self.lerp_factor += 0.002
         if self.lerp_factor >= 1.0:
             # Reset lerp_factor to restart the movement
             self.lerp_factor = 0.0
             # Swap start and target positions for continuous loop
             self.raptor_start_position, self.raptor_target_position = self.raptor_target_position, self.raptor_start_position
+            # Apply a fixed 90-degree rotation when changing direction
+            self.total_rotation += np.radians(180)
+            
         self.lerp_factor = min(1.0, max(0.0, self.lerp_factor))
         self.raptor_current_position = (
             self.raptor_start_position
             + self.lerp_factor * (self.raptor_target_position - self.raptor_start_position)
         )
-        self.raptor.M = np.matmul(translationMatrix(self.raptor_current_position), scaleMatrix([1, 1, 1]))
+        
+        # Update the raptor's model matrix with translation and rotation
+        self.raptor.M = np.matmul(
+            translationMatrix(self.raptor_current_position),
+            np.matmul(rotationMatrixY(self.total_rotation), scaleMatrix([1, 1, 1]))
+        )
 
     def draw_shadow_map(self):
         """
@@ -207,10 +224,14 @@ class JurassicScene(Scene):
             self.triceratops.draw()
             self.city.draw()
             self.box.draw()
+            self.box2.draw()
+            self.box3.draw()
+            self.box4.draw()
             self.raptor.draw()
             self.raptor2.draw()
             self.car.draw()
             self.tank.draw()
+            self.tank2.draw()
 
             self.r1.draw()
             self.r2.draw()
@@ -256,7 +277,8 @@ class JurassicScene(Scene):
             self.r42.draw()
             self.r43.draw()
             self.r44.draw()
-
+            self.r45.draw()
+            self.r46.draw()
 
             # if enabled, show flattened cube
             self.flattened_cube.draw()
