@@ -76,7 +76,7 @@ class JurassicScene(Scene):
 
         # Set the initial and target positions for the raptor
         self.raptor_start_position = np.array([-14,-20, -17])
-        self.raptor_target_position = np.array([10, -20, -17])  # Replace with your desired target position
+        self.raptor_target_position = np.array([10, -20, -17])  # desired target position
         self.raptor_current_position = self.raptor_start_position
         self.lerp_factor = 0.0  # Initial interpolation factor
         self.total_rotation = 0.0  # Track the total rotation applied to the raptor
@@ -84,6 +84,7 @@ class JurassicScene(Scene):
         raptor = load_obj_file('models/RAPTOR_CAGE_MODEL.obj')
         self.raptor = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-14,-20, -17]), scaleMatrix([1, 1, 1])), mesh=raptor[0], shader=PhongShader())
         self.raptor2 = DrawModelFromMesh(scene=self, M=np.matmul(np.matmul(translationMatrix([9,-20, 15]), scaleMatrix([1, 1, 1])), rotationMatrixY(4.71239)), mesh=raptor[0], shader=PhongShader())
+        self.raptor3 = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([17,-20, -9]), scaleMatrix([1, 1, 1])), mesh=raptor[0], shader=EnvironmentShader(map=self.environment))
 
         # road pieces
         r1 = load_obj_file('models/3Roads.obj')
@@ -229,6 +230,7 @@ class JurassicScene(Scene):
             self.box4.draw()
             self.raptor.draw()
             self.raptor2.draw()
+            self.raptor3.draw()
             self.car.draw()
             self.tank.draw()
             self.tank2.draw()
