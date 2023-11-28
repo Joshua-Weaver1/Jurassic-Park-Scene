@@ -1,0 +1,14 @@
+# 
+# Wavefront material file
+# Converted by the DEEP Exploration  Deep Exploration 6.5 x64 6.5.0.9182
+# Right Hemisphere, LTD
+# http://www.righthemisphere.com/
+# 
+
+newmtl material
+Ka 0.3 0.3 0.3
+Kd 0.7 0.7 0.7
+Ks 0 0 0
+illum 2
+Ns 20
+map_Kd car_diffuse.bmp

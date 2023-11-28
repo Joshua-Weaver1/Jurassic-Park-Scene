@@ -54,14 +54,20 @@ class JurassicScene(Scene):
         self.sphere = DrawModelFromMesh(scene=self, M=poseMatrix(), mesh=Sphere(), shader=EnvironmentShader(map=self.environment))
 
         # triceratops
-        tri = load_obj_file('models/TRIKERATOPS_CAGE_MODEL.obj')
-        self.tri = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-20,1.5]), scaleMatrix([0.4,0.4,0.4])), mesh=tri[0], shader=FlatShader())
+        city = load_obj_file('models/city.obj')
+        self.city = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([7,-23,17]), scaleMatrix([0.02,0.08,0.02])), mesh=city[0], shader=PhongShader())
 
-        bunny = load_obj_file('models/city.obj')
-        self.bunny = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([7,-23,17]), scaleMatrix([0.02,0.08,0.02])), mesh=bunny[0], shader=FlatShader())
+        triceratops = load_obj_file('models/TRIKERATOPS_CAGE_MODEL.obj')
+        self.triceratops = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([0,-20,1.5]), scaleMatrix([0.4,0.4,0.4])), mesh=triceratops[0], shader=PhongShader())
 
         box = load_obj_file('models/postbox.obj')
         self.box = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-4,-20, 4]), scaleMatrix([10, 10, 10])), mesh=box[0], shader=PhongShader())
+        
+        car = load_obj_file('models/car.obj')
+        self.car = DrawModelFromMesh(scene=self, M=np.matmul(translationMatrix([-12,-20, 5]), scaleMatrix([0.4, 0.4, 0.4])), mesh=car[0], shader=PhongShader())
+
+        tank = load_obj_file('models/tank.obj')
+        self.tank = DrawModelFromMesh(scene=self, M=np.matmul(np.matmul(translationMatrix([-12,-20, 2]), scaleMatrix([0.015, 0.015, 0.015])), rotationMatrixY(1.5708)), mesh=tank[0], shader=PhongShader())
 
         # Set the initial and target positions for the raptor
         self.raptor_start_position = np.array([-12,-20, -17])
@@ -198,11 +204,13 @@ class JurassicScene(Scene):
 
             self.environment.update(self)
 
-            self.bunny.draw()
-            self.tri.draw()
+            self.triceratops.draw()
+            self.city.draw()
             self.box.draw()
             self.raptor.draw()
             self.raptor2.draw()
+            self.car.draw()
+            self.tank.draw()
 
             self.r1.draw()
             self.r2.draw()
@@ -300,23 +308,23 @@ class JurassicScene(Scene):
 
         if event.key == pygame.K_1:
             print('--> using Flat shading')
-            self.bunny.use_textures = True
-            self.bunny.bind_shader('flat')
+            self.triceratops.use_textures = True
+            self.triceratops.bind_shader('flat')
 
         if event.key == pygame.K_2:
             print('--> using Phong shading')
-            self.bunny.use_textures = True
-            self.bunny.bind_shader('phong')
+            self.triceratops.use_textures = True
+            self.triceratops.bind_shader('phong')
 
         elif event.key == pygame.K_4:
             print('--> using original texture')
-            self.bunny.shader.mode = 1
+            self.triceratops.shader.mode = 1
 
         elif event.key == pygame.K_6:
-            self.bunny.mesh.material.alpha += 0.1
-            print('--> bunny alpha={}'.format(self.bunny.mesh.material.alpha))
-            if self.bunny.mesh.material.alpha > 1.0:
-                self.bunny.mesh.material.alpha = 0.0
+            self.triceratops.mesh.material.alpha += 0.1
+            print('--> triceratops alpha={}'.format(self.triceratops.mesh.material.alpha))
+            if self.triceratops.mesh.material.alpha > 1.0:
+                self.triceratops.mesh.material.alpha = 0.0
 
         elif event.key == pygame.K_7:
             print('--> no face culling')
